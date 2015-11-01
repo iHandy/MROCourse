@@ -30,6 +30,11 @@
             android:label="@string/title_activity_binarization"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
+        <activity
+            android:name=".GystogramActivity"
+            android:label="@string/title_activity_gystogram"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
     </application>
 
 </manifest>

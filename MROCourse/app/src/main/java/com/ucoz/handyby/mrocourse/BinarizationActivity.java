@@ -22,9 +22,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.ucoz.handyby.mrocourse.Views.RowsGystogramView;
 import com.ucoz.handyby.mrocourse.processors.Binarizer;
+import com.ucoz.handyby.mrocourse.processors.GystMember;
+import com.ucoz.handyby.mrocourse.processors.GystogramBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 
 public class BinarizationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, IConstants {
@@ -34,6 +38,7 @@ public class BinarizationActivity extends AppCompatActivity
 
     private ImageView imageViewScreenshot;
     private String mImagePath;
+    private RowsGystogramView mGystView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +79,8 @@ public class BinarizationActivity extends AppCompatActivity
                 }
             }
         }
+
+        mGystView = (RowsGystogramView) findViewById(R.id.gyst_view);
     }
 
     @Override
@@ -156,6 +163,10 @@ public class BinarizationActivity extends AppCompatActivity
             startBinarization(DEFAULT_THRESHOLD);
         } else if (id == R.id.nav_bin_method_120) {
             start120Binarization();
+        } else if (id == R.id.nav_gyst_rows) {
+            drawRowsGystogram();
+        } else if (id == R.id.nav_gyst_full) {
+            showRowsGystOnFullScreen();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -163,17 +174,33 @@ public class BinarizationActivity extends AppCompatActivity
         return true;
     }
 
+    private void showRowsGystOnFullScreen() {
+        GystogramBuilder gystogramBuilder = new GystogramBuilder();
+        ArrayList<GystMember> gystogram = gystogramBuilder.getRowsGystogram(mImagePath);
+
+        Intent fullActivityIntent = new Intent(this, GystogramActivity.class);
+        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM, gystogram);
+        startActivity(fullActivityIntent);
+    }
+
+    private void drawRowsGystogram() {
+        GystogramBuilder gystogramBuilder = new GystogramBuilder();
+        ArrayList<GystMember> gystogram = gystogramBuilder.getRowsGystogram(mImagePath);
+        mGystView.setGystogram(gystogram);
+        mGystView.setVisibility(View.VISIBLE);
+    }
+
     private void start120Binarization() {
         //Toast.makeText(this, "Not implement yet!", Toast.LENGTH_SHORT).show();
-        Binarizer binarizer = new Binarizer(this);
+        Binarizer binarizer = new Binarizer();
         int threshold = binarizer.binarizeBy120Method(mImagePath);
         reloadImageView();
-        Toast.makeText(this, "Threshold = "+String.valueOf(threshold), Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Threshold = " + String.valueOf(threshold), Toast.LENGTH_LONG).show();
     }
 
     private void startBinarization(int threshold) {
         //Toast.makeText(this, "Not implement yet!", Toast.LENGTH_SHORT).show();
-        Binarizer binarizer = new Binarizer(this);
+        Binarizer binarizer = new Binarizer();
         binarizer.binarizeByThreshold(mImagePath, threshold);
         reloadImageView();
     }

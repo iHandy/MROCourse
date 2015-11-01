@@ -14,12 +14,6 @@ import java.io.IOException;
  */
 public class Binarizer {
 
-    private Context mContext;
-
-    public Binarizer(Context mContext) {
-        this.mContext = mContext;
-    }
-
     public void binarizeByThreshold(String imagePath, int threshold) {
         Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
         int width = bitmap.getWidth();
@@ -28,7 +22,6 @@ public class Binarizer {
         int[] pixels = new int[size];
         bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
         bitmap.recycle();
-
 
         for (int i = 0; i < size; i++) {
             int color = pixels[i];

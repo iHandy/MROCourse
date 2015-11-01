@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity implements IConstants {
             String mPath = Environment.getExternalStorageDirectory().toString() + "/" + now + ".jpg";
 
             // create bitmap screen capture
-            View v1 = getWindow().getDecorView().getRootView();
+            //View v1 = getWindow().getDecorView().getRootView();
+            View v1 = findViewById(R.id.main_content_layout);
             v1.setDrawingCacheEnabled(true);
             Bitmap bitmap = Bitmap.createBitmap(v1.getDrawingCache());
             v1.setDrawingCacheEnabled(false);
