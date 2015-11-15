@@ -6,4 +6,5 @@ package com.ucoz.handyby.mrocourse;
 public interface IConstants {
     String BUNDLE_PATH = "bundle_path";
     String BUNDLE_GYSTOGRAM = "bundle_gystogram";
+    String BUNDLE_GYSTOGRAM_TYPE = "bundle_gystogram_type";
 }

@@ -32,7 +32,7 @@ public class Binarizer {
             pixels[i] = luminance > threshold ? Color.WHITE : Color.BLACK;
         }
 
-        saveBitmap(imagePath, width, height, pixels);
+        Utils.saveBitmap(imagePath, width, height, pixels);
     }
 
     public int binarizeBy120Method(String imagePath) {
@@ -66,25 +66,8 @@ public class Binarizer {
             }
         }
 
-        saveBitmap(imagePath, width, height, pixels);
+        Utils.saveBitmap(imagePath, width, height, pixels);
         return maxGray;
     }
 
-    private void saveBitmap(String imagePath, int width, int height, int[] pixels) {
-        Bitmap bitmap;
-        bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(imagePath);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-            fos.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            bitmap.recycle();
-        }
-    }
 }

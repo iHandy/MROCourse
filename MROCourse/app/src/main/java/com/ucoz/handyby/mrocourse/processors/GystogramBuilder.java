@@ -4,7 +4,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Created by Handy on 01.11.2015.
@@ -91,4 +97,76 @@ public class GystogramBuilder {
         return gystogram;
     }
 
+
+    public ArrayList<GystMember> getSpacesInRowsGystogram(String imagePath, ArrayList<GystMember> rowsGystogram) {
+        Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        int size = width * height;
+        int[] pixels = new int[size];
+        bitmap.getPixels(pixels, 0, width, 0, 0, width, height);
+        bitmap.recycle();
+
+        ArrayList<GystMember> oneRowGystogram = new ArrayList<>();
+        ArrayList<Integer> spaces = new ArrayList<>();
+        ArrayList<GystMember> spacesInRowsGystogram = new ArrayList<>();
+
+        int yStart = 0, yEnd = 0, yIter = -1;
+        boolean inLine = false;
+        for (GystMember gystMember : rowsGystogram) {
+            yIter++;
+
+            if (gystMember.count > 0 && !inLine) {
+                inLine = true;
+                yStart = yIter;
+            } else if (gystMember.count == 0 && inLine) {
+                inLine = false;
+                yEnd = yIter;
+
+                for (int x = 0; x < width; x++) {
+                    GystMember member = new GystMember(x);
+                    for (int y = yStart; y < yEnd; y++) {
+                        int color = pixels[x + y * width];
+                        if (color == Color.BLACK) {
+                            member.add();
+                        }
+                    }
+                    oneRowGystogram.add(member);
+                }
+
+                int xStart = 0, xEnd = 0, xIter = -1;
+                boolean inRow = false;
+                for (GystMember oneRowMember : oneRowGystogram) {
+                    xIter++;
+
+                    if (oneRowMember.count == 0 && !inRow) {
+                        inRow = true;
+                        xStart = xIter;
+                    } else if ((oneRowMember.count > 0 || xIter == oneRowGystogram.size()-1) && inRow) {
+                        inRow = false;
+                        xEnd = xIter;
+
+                        int xValue = xEnd - xStart;
+                        spaces.add(xValue);
+                    }
+                }
+            }
+        }
+
+        Collections.sort(spaces);
+        int lastSpace = -1;
+        GystMember gystMember = null;
+        for (Integer space : spaces) {
+            if (space > lastSpace) {
+                if (gystMember != null) {
+                    spacesInRowsGystogram.add(gystMember);
+                }
+                gystMember = new GystMember(space);
+            }
+            gystMember.add();
+            lastSpace = space;
+        }
+
+        return spacesInRowsGystogram;
+    }
 }

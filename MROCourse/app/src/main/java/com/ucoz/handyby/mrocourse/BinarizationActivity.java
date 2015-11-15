@@ -24,8 +24,10 @@ import android.widget.Toast;
 
 import com.ucoz.handyby.mrocourse.Views.RowsGystogramView;
 import com.ucoz.handyby.mrocourse.processors.Binarizer;
+import com.ucoz.handyby.mrocourse.processors.ColorWordsProcessor;
 import com.ucoz.handyby.mrocourse.processors.GystMember;
 import com.ucoz.handyby.mrocourse.processors.GystogramBuilder;
+import com.ucoz.handyby.mrocourse.processors.SpacesHolder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -34,11 +36,15 @@ public class BinarizationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, IConstants {
 
     public static final int DEFAULT_THRESHOLD = 128;
+    public static final double ROWS_GYSTOGRAM_SUBSTRACT_PERCENT = 0.3;
     private String mUserThreshold = String.valueOf(DEFAULT_THRESHOLD);
 
     private ImageView imageViewScreenshot;
     private String mImagePath;
     private RowsGystogramView mGystView;
+
+    private ArrayList<GystMember> mRowsGystogram = null;
+    private ArrayList<GystMember> mSpacesInRowsGytogram = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,6 +173,12 @@ public class BinarizationActivity extends AppCompatActivity
             drawRowsGystogram();
         } else if (id == R.id.nav_gyst_full) {
             showRowsGystOnFullScreen();
+        } else if (id == R.id.nav_gyst_substract30) {
+            substract30();
+        } else if (id == R.id.nav_gyst_spaces_in_rows) {
+            getSpacesInRowsGystogram();
+        } else if (id == R.id.nav_segment_color_words) {
+            drawColorWords();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -174,24 +186,92 @@ public class BinarizationActivity extends AppCompatActivity
         return true;
     }
 
-    private void showRowsGystOnFullScreen() {
-        GystogramBuilder gystogramBuilder = new GystogramBuilder();
-        ArrayList<GystMember> gystogram = gystogramBuilder.getRowsGystogram(mImagePath);
+    private void drawColorWords() {
+        if (mSpacesInRowsGytogram == null || mSpacesInRowsGytogram.isEmpty()) {
+            Toast.makeText(this, "Please, create spaces gystogram!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        SpacesHolder spacesHolder = new SpacesHolder(mSpacesInRowsGytogram);
+        ColorWordsProcessor colorWordsProcessor = new ColorWordsProcessor(mImagePath, mRowsGystogram, spacesHolder);
+        colorWordsProcessor.detectAndPaintWords();
+
+        reloadImageView();
+
+    }
+
+    private void getSpacesInRowsGystogram() {
+        if (mSpacesInRowsGytogram == null) {
+            initSpacesInRowsGystogram();
+        }
 
         Intent fullActivityIntent = new Intent(this, GystogramActivity.class);
-        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM, gystogram);
+        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM, mSpacesInRowsGytogram);
+        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM_TYPE, 2);
+        startActivity(fullActivityIntent);
+    }
+
+    private void substract30() {
+        if (mRowsGystogram == null) {
+            initRowsGystogram();
+        }
+
+        int max = Integer.MIN_VALUE;
+        for (GystMember member : mRowsGystogram) {
+            if (member.count > max) {
+                max = member.count;
+            }
+        }
+
+        int substrValue = (int) (max * ROWS_GYSTOGRAM_SUBSTRACT_PERCENT);
+        for (GystMember member : mRowsGystogram) {
+            if (member.count > 0) {
+                member.count -= substrValue;
+                if (member.count < 0) {
+                    member.count = 0;
+                }
+            }
+        }
+    }
+
+    private void showRowsGystOnFullScreen() {
+        if (mRowsGystogram == null) {
+            initRowsGystogram();
+        }
+
+        Intent fullActivityIntent = new Intent(this, GystogramActivity.class);
+        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM, mRowsGystogram);
+        fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM_TYPE, 1);
         startActivity(fullActivityIntent);
     }
 
     private void drawRowsGystogram() {
-        GystogramBuilder gystogramBuilder = new GystogramBuilder();
-        ArrayList<GystMember> gystogram = gystogramBuilder.getRowsGystogram(mImagePath);
-        mGystView.setGystogram(gystogram);
+        if (mRowsGystogram == null) {
+            initRowsGystogram();
+        }
+
+        mGystView.setGystogram(mRowsGystogram);
         mGystView.setVisibility(View.VISIBLE);
     }
 
+    private void initRowsGystogram() {
+        if (!TextUtils.isEmpty(mImagePath)) {
+            GystogramBuilder gystogramBuilder = new GystogramBuilder();
+            mRowsGystogram = gystogramBuilder.getRowsGystogram(mImagePath);
+        } else {
+            Toast.makeText(this, "Image path is empty! Create new image", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void initSpacesInRowsGystogram() {
+        if (!TextUtils.isEmpty(mImagePath) && mRowsGystogram != null && !mRowsGystogram.isEmpty()) {
+            GystogramBuilder gystogramBuilder = new GystogramBuilder();
+            mSpacesInRowsGytogram = gystogramBuilder.getSpacesInRowsGystogram(mImagePath, mRowsGystogram);
+        } else {
+            Toast.makeText(this, "Create rows gystogram!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void start120Binarization() {
-        //Toast.makeText(this, "Not implement yet!", Toast.LENGTH_SHORT).show();
         Binarizer binarizer = new Binarizer();
         int threshold = binarizer.binarizeBy120Method(mImagePath);
         reloadImageView();
@@ -199,7 +279,6 @@ public class BinarizationActivity extends AppCompatActivity
     }
 
     private void startBinarization(int threshold) {
-        //Toast.makeText(this, "Not implement yet!", Toast.LENGTH_SHORT).show();
         Binarizer binarizer = new Binarizer();
         binarizer.binarizeByThreshold(mImagePath, threshold);
         reloadImageView();
