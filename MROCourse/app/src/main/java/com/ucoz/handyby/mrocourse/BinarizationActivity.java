@@ -27,6 +27,7 @@ import com.ucoz.handyby.mrocourse.processors.Binarizer;
 import com.ucoz.handyby.mrocourse.processors.ColorWordsProcessor;
 import com.ucoz.handyby.mrocourse.processors.GystMember;
 import com.ucoz.handyby.mrocourse.processors.GystogramBuilder;
+import com.ucoz.handyby.mrocourse.processors.PartImageMember;
 import com.ucoz.handyby.mrocourse.processors.SpacesHolder;
 
 import java.io.File;
@@ -197,6 +198,8 @@ public class BinarizationActivity extends AppCompatActivity
 
         reloadImageView();
 
+        ArrayList<PartImageMember> pretendents = colorWordsProcessor.getPretendents();
+
     }
 
     private void getSpacesInRowsGystogram() {
@@ -222,8 +225,19 @@ public class BinarizationActivity extends AppCompatActivity
             }
         }
 
+        int skip = 80;
         int substrValue = (int) (max * ROWS_GYSTOGRAM_SUBSTRACT_PERCENT);
         for (GystMember member : mRowsGystogram) {
+            if (skip != 0)
+            {
+                skip--;
+                if (member.count > 0) {
+                    member.count = member.count * 5 - substrValue;
+                    if (member.count < 0) {
+                        member.count = 0;
+                    }
+                }
+            } else
             if (member.count > 0) {
                 member.count -= substrValue;
                 if (member.count < 0) {

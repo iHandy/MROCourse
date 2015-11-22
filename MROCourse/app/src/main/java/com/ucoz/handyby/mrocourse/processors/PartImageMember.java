@@ -11,4 +11,5 @@ public class PartImageMember implements Serializable{
     public int startY;
     public int endX;
     public int endY;
+    public int chars;
 }
