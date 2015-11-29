@@ -199,6 +199,12 @@ public class BinarizationActivity extends AppCompatActivity
         reloadImageView();
 
         ArrayList<PartImageMember> pretendents = colorWordsProcessor.getPretendents();
+        if (pretendents != null && !pretendents.isEmpty())
+        {
+            colorWordsProcessor.thickPixelIter();
+        }
+
+        reloadImageView();
 
     }
 

@@ -133,8 +133,7 @@ public class ColorWordsProcessor {
         return mPretendents;
     }
 
-    public void thickLRTB()
-    {
+    public void thickPixelIter() {
         Bitmap bitmap = BitmapFactory.decodeFile(mImagePath);
         int width = bitmap.getWidth();
         int height = bitmap.getHeight();
@@ -144,40 +143,146 @@ public class ColorWordsProcessor {
         bitmap.recycle();
 
 
-        boolean exitLRTB = true;
         for (PartImageMember pretendent : mPretendents) {
             int pretendentWidth = pretendent.endX - pretendent.startX;
-            int pretendentSize = (pretendentWidth) * (pretendent.endY - pretendent.startY);
-            int[] workPixels = new int[pretendentWidth];
-            int[][] pixelNeibours = new int[3][3];
-            //LRTB cycle
-            do{
-                //L cycle
-                for(int ly = pretendent.startY; ly < pretendent.endY; ly++)
-                {
-                    int lastColor = Color.WHITE;
-                    for (int lx = pretendent.startX; lx < pretendent.endX; lx++)
-                    {
-                        int currentColor = pixels[lx + ly * pretendentWidth];
+            int pretendentHeight = pretendent.endY - pretendent.startY;
+            //int pretendentSize = (pretendentWidth) * (pretendent.endY - pretendent.startY);
+            int[][] workPixels = new int[pretendentWidth][pretendentHeight];
 
-                        if (lastColor == Color.WHITE && currentColor != Color.WHITE)
-                        {
-                            pixelNeibours[0][0] = pixels[(lx-1) + (ly-1) * pretendentWidth];
-                            pixelNeibours[0][1] = pixels[(lx) + (ly-1) * pretendentWidth];
-                            pixelNeibours[0][2] = pixels[(lx+1) + (ly-1) * pretendentWidth];
-                            pixelNeibours[1][0] = pixels[(lx-1) + (ly) * pretendentWidth];
-                            pixelNeibours[1][1] = pixels[(lx) + (ly) * pretendentWidth];
-                            pixelNeibours[1][2] = pixels[(lx+1) + (ly) * pretendentWidth];
-                            pixelNeibours[2][0] = pixels[(lx-1) + (ly+1) * pretendentWidth];
-                            pixelNeibours[2][1] = pixels[(lx) + (ly+1) * pretendentWidth];
-                            pixelNeibours[2][2] = pixels[(lx+1) + (ly+1) * pretendentWidth];
+            //Get pretendent matrix from big image
+            for (int pY = pretendent.startY, py1 = 0; pY < pretendent.endY; pY++, py1++) {
+                for (int pX = pretendent.startX, px1 = 0; pX < pretendent.endX; pX++, px1++) {
+                    workPixels[px1][py1] = pixels[pX + pY * width];
+                }
+            }
+
+            boolean exitByPixelIter = false;
+            //ByPixelIter cycle
+            do {
+                int cycleChanges = 0;
+                //top-bottom cycle
+                for (int ly = 0; ly < pretendentHeight; ly++) {
+                    //left-right cycle
+                    for (int lx = 0; lx < pretendentWidth; lx++) {
+                        int currentColor = workPixels[lx][ly];
+
+                        //only for color (black) pixels
+                        if (currentColor != Color.WHITE) {
+                            //fill 3x3 matrix
+                            int[][] pixelNeibours = fill3x3Matrix(pretendentWidth, pretendentHeight, workPixels, ly, lx);
+                            //1 case: min 1 white by 4x;
+                            //2 case: >2 black by 8x;
+                            //3 case: min 1 black not checked by 8x;
+                            int countWhite4X = 0, countBlack = 0, countNCBlack = 0;
+                            for (int pnY = 0; pnY < 3; pnY++) {
+                                for (int pnX = 0; pnX < 3; pnX++) {
+                                    if (pnY == 1 && pnX == 1) {
+                                        continue; //skip center pixel;
+                                    }
+                                    if (pixelNeibours[pnX][pnY] == Color.WHITE) {
+                                        countWhite4X += pixelIn4x(pnX, pnY) ? 1 : 0;
+                                    } else {
+                                        countBlack++;
+                                        countNCBlack += pixelNeibours[pnX][pnY] != Color.BLACK ? 1 : 0;
+                                    }
+                                }
+                            }
+
+                            //4 case: not break point
+                            int countChanges = 0;
+                            int[] line = getLineFromMatrixByCircle(pixelNeibours);
+                            int prevU = line[0];
+                            for (int u : line) {
+                                countChanges += prevU != u && prevU == Color.WHITE ? 1 : 0;
+                                prevU = u;
+                            }
+
+                            //1,2,3,4 cases check
+                            if (countWhite4X >= 1 && countBlack >= 2 && countNCBlack >= 1 && countChanges <= 1) {
+                                //5 case:
+                                countChanges = 0;
+                                if (line[2] == Color.BLACK) {
+                                    line[2] = Color.WHITE;
+                                    prevU = line[0];
+                                    for (int u : line) {
+                                        countChanges += prevU != u && prevU == Color.WHITE ? 1 : 0;
+                                        prevU = u;
+                                    }
+                                    line[2] = Color.BLACK;
+                                }
+
+                                if (countChanges <= 1) {
+                                    //6 case:
+                                    countChanges = 0;
+                                    if (line[4] == Color.BLACK) {
+                                        line[4] = Color.WHITE;
+                                        prevU = line[0];
+                                        for (int u : line) {
+                                            countChanges += prevU != u && prevU == Color.WHITE ? 1 : 0;
+                                            prevU = u;
+                                        }
+                                        line[4] = Color.BLACK;
+                                    }
+
+                                    if (countChanges <= 1) {
+                                        //all cases complete. Set pixel on BLACK
+                                        workPixels[lx][ly] = Color.BLACK;
+                                        cycleChanges++;
+                                    }
+                                }
+                            }
                         }
-
-                        lastColor = currentColor;
                     }
                 }
-            }while (!exitLRTB);
+
+                if (cycleChanges != 0) {
+                    //remove checked BLACK pixels
+                    for (int y = 0; y < pretendentHeight; y++)
+                        for (int x = 0; x < pretendentWidth; x++) {
+                            if (workPixels[x][y] == Color.BLACK) {
+                                workPixels[x][y] = Color.WHITE;
+                            }
+                        }
+                } else {
+                    exitByPixelIter = true;
+                    break;
+                }
+            } while (!exitByPixelIter);
+
+            //update big image with new pretendent
+            for (int pY = pretendent.startY, py1 = 0; pY < pretendent.endY; pY++, py1++)
+                for (int pX = pretendent.startX, px1 = 0; pX < pretendent.endX; pX++, px1++) {
+                    pixels[pX + pY * width] = workPixels[px1][py1] == Color.WHITE ? Color.WHITE : Color.BLACK;
+                }
         }
 
+        Utils.saveBitmap(mImagePath, width, height, pixels);
+    }
+
+    private int[] getLineFromMatrixByCircle(int[][] pixelNeibours) {
+        return new int[]{pixelNeibours[2][1], pixelNeibours[2][0], pixelNeibours[1][0],
+                pixelNeibours[0][0], pixelNeibours[0][1], pixelNeibours[0][2],
+                pixelNeibours[1][2], pixelNeibours[2][2], pixelNeibours[2][1]};
+    }
+
+    private boolean pixelIn4x(int x, int y) {
+        return ((x == 1 && y == 0)
+                || (x == 0 && y == 1)
+                || (x == 2 && y == 1)
+                || (x == 1 && y == 2));
+    }
+
+    private int[][] fill3x3Matrix(int width, int height, int[][] workPixels, int y, int x) {
+        int[][] matrix3x3 = new int[3][3];
+        matrix3x3[0][0] = (x - 1) < 0 || (y - 1) < 0 ? Color.WHITE : workPixels[(x - 1)][(y - 1)];
+        matrix3x3[0][1] = (y - 1) < 0 ? Color.WHITE : workPixels[(x)][(y - 1)];
+        matrix3x3[0][2] = (x + 1) >= width || (y - 1) < 0 ? Color.WHITE : workPixels[(x + 1)][(y - 1)];
+        matrix3x3[1][0] = (x - 1) < 0 ? Color.WHITE : workPixels[(x - 1)][(y)];
+        matrix3x3[1][1] = workPixels[(x)][(y)];
+        matrix3x3[1][2] = (x + 1) >= width ? Color.WHITE : workPixels[(x + 1)][(y)];
+        matrix3x3[2][0] = (x - 1) < 0 || (y + 1) >= height ? Color.WHITE : workPixels[(x - 1)][(y + 1)];
+        matrix3x3[2][1] = (y + 1) >= height ? Color.WHITE : workPixels[(x)][(y + 1)];
+        matrix3x3[2][2] = (x + 1) >= width || (y + 1) >= height ? Color.WHITE : workPixels[(x + 1)][(y + 1)];
+        return matrix3x3;
     }
 }
