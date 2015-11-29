@@ -146,7 +146,6 @@ public class ColorWordsProcessor {
         for (PartImageMember pretendent : mPretendents) {
             int pretendentWidth = pretendent.endX - pretendent.startX;
             int pretendentHeight = pretendent.endY - pretendent.startY;
-            //int pretendentSize = (pretendentWidth) * (pretendent.endY - pretendent.startY);
             int[][] workPixels = new int[pretendentWidth][pretendentHeight];
 
             //Get pretendent matrix from big image
@@ -169,7 +168,7 @@ public class ColorWordsProcessor {
                         //only for color (black) pixels
                         if (currentColor != Color.WHITE) {
                             //fill 3x3 matrix
-                            int[][] pixelNeibours = fill3x3Matrix(pretendentWidth, pretendentHeight, workPixels, ly, lx);
+                            int[][] pixelNeibours = Utils.fill3x3Matrix(pretendentWidth, pretendentHeight, workPixels, ly, lx);
                             //1 case: min 1 white by 4x;
                             //2 case: >2 black by 8x;
                             //3 case: min 1 black not checked by 8x;
@@ -190,7 +189,7 @@ public class ColorWordsProcessor {
 
                             //4 case: not break point
                             int countChanges = 0;
-                            int[] line = getLineFromMatrixByCircle(pixelNeibours);
+                            int[] line = Utils.getLineFromMatrixByCircle(pixelNeibours);
                             int prevU = line[0];
                             for (int u : line) {
                                 countChanges += prevU != u && prevU == Color.WHITE ? 1 : 0;
@@ -259,12 +258,6 @@ public class ColorWordsProcessor {
         Utils.saveBitmap(mImagePath, width, height, pixels);
     }
 
-    private int[] getLineFromMatrixByCircle(int[][] pixelNeibours) {
-        return new int[]{pixelNeibours[2][1], pixelNeibours[2][0], pixelNeibours[1][0],
-                pixelNeibours[0][0], pixelNeibours[0][1], pixelNeibours[0][2],
-                pixelNeibours[1][2], pixelNeibours[2][2], pixelNeibours[2][1]};
-    }
-
     private boolean pixelIn4x(int x, int y) {
         return ((x == 1 && y == 0)
                 || (x == 0 && y == 1)
@@ -272,17 +265,4 @@ public class ColorWordsProcessor {
                 || (x == 1 && y == 2));
     }
 
-    private int[][] fill3x3Matrix(int width, int height, int[][] workPixels, int y, int x) {
-        int[][] matrix3x3 = new int[3][3];
-        matrix3x3[0][0] = (x - 1) < 0 || (y - 1) < 0 ? Color.WHITE : workPixels[(x - 1)][(y - 1)];
-        matrix3x3[0][1] = (y - 1) < 0 ? Color.WHITE : workPixels[(x)][(y - 1)];
-        matrix3x3[0][2] = (x + 1) >= width || (y - 1) < 0 ? Color.WHITE : workPixels[(x + 1)][(y - 1)];
-        matrix3x3[1][0] = (x - 1) < 0 ? Color.WHITE : workPixels[(x - 1)][(y)];
-        matrix3x3[1][1] = workPixels[(x)][(y)];
-        matrix3x3[1][2] = (x + 1) >= width ? Color.WHITE : workPixels[(x + 1)][(y)];
-        matrix3x3[2][0] = (x - 1) < 0 || (y + 1) >= height ? Color.WHITE : workPixels[(x - 1)][(y + 1)];
-        matrix3x3[2][1] = (y + 1) >= height ? Color.WHITE : workPixels[(x)][(y + 1)];
-        matrix3x3[2][2] = (x + 1) >= width || (y + 1) >= height ? Color.WHITE : workPixels[(x + 1)][(y + 1)];
-        return matrix3x3;
-    }
 }

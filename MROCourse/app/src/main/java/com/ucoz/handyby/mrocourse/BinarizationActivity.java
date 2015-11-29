@@ -28,6 +28,7 @@ import com.ucoz.handyby.mrocourse.processors.ColorWordsProcessor;
 import com.ucoz.handyby.mrocourse.processors.GystMember;
 import com.ucoz.handyby.mrocourse.processors.GystogramBuilder;
 import com.ucoz.handyby.mrocourse.processors.PartImageMember;
+import com.ucoz.handyby.mrocourse.processors.Recognizer;
 import com.ucoz.handyby.mrocourse.processors.SpacesHolder;
 
 import java.io.File;
@@ -46,6 +47,7 @@ public class BinarizationActivity extends AppCompatActivity
 
     private ArrayList<GystMember> mRowsGystogram = null;
     private ArrayList<GystMember> mSpacesInRowsGytogram = null;
+    private ArrayList<PartImageMember> mPretendents = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -180,11 +182,31 @@ public class BinarizationActivity extends AppCompatActivity
             getSpacesInRowsGystogram();
         } else if (id == R.id.nav_segment_color_words) {
             drawColorWords();
+        } else if (id == R.id.nav_gyst_spaces_in_rows_show) {
+            showSpacesInRowsGystogram();
+        } else if (id == R.id.nav_recognition_recognize) {
+            generateRecognize();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void generateRecognize() {
+        if (mPretendents == null) {
+            drawColorWords();
+            return;
+        }
+
+        Recognizer recognizer = new Recognizer(mPretendents, mImagePath);
+
+        ArrayList<PartImageMember> recognizerParts = recognizer.getParts();
+        if (recognizerParts != null) {
+            recognizer.drawResult(recognizerParts);
+
+            reloadImageView();
+        }
     }
 
     private void drawColorWords() {
@@ -198,21 +220,21 @@ public class BinarizationActivity extends AppCompatActivity
 
         reloadImageView();
 
-        ArrayList<PartImageMember> pretendents = colorWordsProcessor.getPretendents();
-        if (pretendents != null && !pretendents.isEmpty())
-        {
+        mPretendents = colorWordsProcessor.getPretendents();
+        if (mPretendents != null && !mPretendents.isEmpty()) {
             colorWordsProcessor.thickPixelIter();
         }
 
         reloadImageView();
-
     }
 
     private void getSpacesInRowsGystogram() {
         if (mSpacesInRowsGytogram == null) {
             initSpacesInRowsGystogram();
         }
+    }
 
+    private void showSpacesInRowsGystogram() {
         Intent fullActivityIntent = new Intent(this, GystogramActivity.class);
         fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM, mSpacesInRowsGytogram);
         fullActivityIntent.putExtra(BUNDLE_GYSTOGRAM_TYPE, 2);
@@ -234,8 +256,7 @@ public class BinarizationActivity extends AppCompatActivity
         int skip = 80;
         int substrValue = (int) (max * ROWS_GYSTOGRAM_SUBSTRACT_PERCENT);
         for (GystMember member : mRowsGystogram) {
-            if (skip != 0)
-            {
+            if (skip != 0) {
                 skip--;
                 if (member.count > 0) {
                     member.count = member.count * 5 - substrValue;
@@ -243,8 +264,7 @@ public class BinarizationActivity extends AppCompatActivity
                         member.count = 0;
                     }
                 }
-            } else
-            if (member.count > 0) {
+            } else if (member.count > 0) {
                 member.count -= substrValue;
                 if (member.count < 0) {
                     member.count = 0;

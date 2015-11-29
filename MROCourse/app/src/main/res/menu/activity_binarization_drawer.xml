@@ -33,7 +33,7 @@
             <item
                 android:id="@+id/nav_gyst_rows"
                 android:icon="@android:drawable/ic_menu_gallery"
-                android:title="Rows" />
+                android:title="Rows *" />
             <item
                 android:id="@+id/nav_gyst_full"
                 android:icon="@android:drawable/ic_menu_gallery"
@@ -41,18 +41,28 @@
             <item
                 android:id="@+id/nav_gyst_substract30"
                 android:icon="@android:drawable/ic_menu_gallery"
-                android:title="Substract 30%" />
+                android:title="Substract 30% *" />
             <item
                 android:id="@+id/nav_gyst_spaces_in_rows"
                 android:icon="@android:drawable/ic_menu_gallery"
-                android:title="Spaces gystogram" />
+                android:title="Generate spaces gystogram \*" />
+            <item
+                android:id="@+id/nav_gyst_spaces_in_rows_show"
+                android:icon="@android:drawable/ic_menu_gallery"
+                android:title="Show spaces gystogram" />
         </menu>
     </item>
     <item android:title="Segmentation">
         <item
             android:id="@+id/nav_segment_color_words"
             android:icon="@android:drawable/ic_menu_gallery"
-            android:title="Color words" />
+            android:title="Color words *" />
+    </item>
+    <item android:title="Recognition">
+        <item
+            android:id="@+id/nav_recognition_recognize"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="Recognize *" />
     </item>
 
 </menu>
