@@ -16,6 +16,14 @@ public class RecognizeMember {
     public int neighbor3Count2;
     public int endsCount2;
 
+    public ArrayList<Integer> A4;
+    public ArrayList<Integer> A8;
+    public ArrayList<Integer> Cn;
+
+    public int centerBlack;
+    public int center1Black;
+    public int center2Black;
+
     public double R;
 
     private PartImageMember mPretendent;
@@ -29,24 +37,21 @@ public class RecognizeMember {
         neighbor4Count2 = 0;
         neighbor3Count2 = 0;
         endsCount2 = 0;
+        A4 = new ArrayList<>();
+        A8 = new ArrayList<>();
+        Cn = new ArrayList<>();
         mPretendent = pretendent;
+        centerBlack = 0;
+        center1Black = 0;
+        center2Black = 0;
     }
 
     public PartImageMember getPretendent() {
         return mPretendent;
     }
 
-    public double equalsR1(RecognizeMember o) {
+    public double equalsR(RecognizeMember o) {
         return Math.sqrt(Math.pow(this.endsCount - o.endsCount, 2)
-                + Math.pow(this.neighbor5Count - o.neighbor5Count, 2)
-                + Math.pow(this.neighbor4Count - o.neighbor4Count, 2)
-                + Math.pow(this.neighbor3Count - o.neighbor3Count, 2));
-    }
-
-    public double equalsR2(RecognizeMember o) {
-        return Math.sqrt(Math.pow(this.endsCount2 - o.endsCount2, 2)
-                + Math.pow(this.neighbor5Count2 - o.neighbor5Count2, 2)
-                + Math.pow(this.neighbor4Count2 - o.neighbor4Count2, 2)
-                + Math.pow(this.neighbor3Count2 - o.neighbor3Count2, 2));
+                + Math.pow(this.endsCount2 - o.endsCount2, 2));
     }
 }

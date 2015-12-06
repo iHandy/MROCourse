@@ -46,19 +46,15 @@ public class Recognizer {
         generateRecognizeMembers();
 
         mResultPartImageMembers.clear();
-        //ArrayMap<Double, PartImageMember> mapR = new ArrayMap<>();
-        //ArrayList<RecognizeMember> mapR = new ArrayList<>();
         ArrayList<Double> keys = new ArrayList<>();
 
         RecognizeMember firstMember = mRecognizeMembers.get(0);
         mRecognizeMembers.remove(firstMember);
         for (RecognizeMember recognizeMember : mRecognizeMembers) {
             if (recognizeMember.getPretendent() != firstMember.getPretendent()) {
-                double keyR1 = firstMember.equalsR1(recognizeMember);
-                double keyR2 = firstMember.equalsR2(recognizeMember);
-                recognizeMember.R = keyR1 + keyR2;
-                //mapR.add(recognizeMember);
-                keys.add(keyR1 + keyR2);
+                double keyR = firstMember.equalsR(recognizeMember);
+                recognizeMember.R = keyR;
+                keys.add(keyR);
             }
         }
 
@@ -69,27 +65,19 @@ public class Recognizer {
             }
         });
 
-        //mResultPartImageMembers.add(mRecognizeMembers.get(0).getPretendent())
-
-        double firstKey = 0;
-        double secondKey = 0;
-        double thirdKey = 0;
+        double firstKey = -1;
+        double secondKey = -1;
         for (RecognizeMember member : mRecognizeMembers) {
             double key = member.R;
-            if (firstKey == 0) {
+            if (firstKey == -1) {
                 firstKey = key;
                 mResultPartImageMembers.add(member.getPretendent());
             } else if (key == firstKey) {
                 mResultPartImageMembers.add(member.getPretendent());
-            } else if (secondKey == 0) {
+            } else if (secondKey == -1) {
                 secondKey = key;
                 mResultPartImageMembers.add(member.getPretendent());
             } else if (secondKey == key) {
-                mResultPartImageMembers.add(member.getPretendent());
-            } else if (thirdKey == 0) {
-                thirdKey = key;
-                mResultPartImageMembers.add(member.getPretendent());
-            } else if (thirdKey == key) {
                 mResultPartImageMembers.add(member.getPretendent());
             }
         }
@@ -166,12 +154,24 @@ public class Recognizer {
                         int Nc4 = A4 - C8;
                         int CN = A8 - B8;
 
+                        recognizeMember.A4.add(A4);
+                        recognizeMember.A8.add(A8);
+                        recognizeMember.Cn.add(CN);
+
                         if (A8 == 1 && Nc4 == 1 && CN == 1) {
                             if (ly < half) {
                                 recognizeMember.endsCount++;
                             } else {
                                 recognizeMember.endsCount2++;
                             }
+                        }
+
+                        if (ly == half) {
+                            recognizeMember.centerBlack++;
+                        } else if (ly == half / 2) {
+                            recognizeMember.center1Black++;
+                        } else if (ly == (pretendentHeight - half / 2)) {
+                            recognizeMember.center2Black++;
                         }
                     }
                 }
