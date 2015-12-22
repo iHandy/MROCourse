@@ -67,6 +67,8 @@ public class ColorWordsProcessor {
                 int xStart = 0, xEnd = 0, xIter = -1, xEndPrev = -1;
                 boolean inRow = false;
                 int chars = 0;
+                PartImageMember memberFirst = null;
+                PartImageMember memberLast = null;
                 for (GystMember oneRowMember : oneRowGystogram) {
                     xIter++;
 
@@ -87,6 +89,10 @@ public class ColorWordsProcessor {
                                 wordMember.endX = xStart;
                                 wordMember.endY = yEnd;
                                 wordMember.chars = chars + 1;
+                                if (memberFirst == null) {
+                                    memberFirst = wordMember;
+                                }
+                                memberLast = wordMember;
                                 wordParts.add(wordMember);
                                 chars = 0;
                             }
@@ -97,6 +103,10 @@ public class ColorWordsProcessor {
                         }
 
                     }
+                }
+                if (!memberFirst.equals(memberLast)) {
+                    memberFirst.chars++;
+                    memberLast.chars++;
                 }
             }
         }
